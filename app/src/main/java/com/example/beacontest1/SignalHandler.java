@@ -57,7 +57,7 @@ public class SignalHandler extends AppCompatActivity implements BeaconConsumer {
     //    String A_beacon= "0x11111111111111111111";
 //    String B_beacon= "0x22222222222222222222";
 //    String C_beacon= "0x33333333333333333333";
-    int distanceFlag = 200;
+    int distanceFlag = 100;
     double A = -16.0 ;
     double noise_value = 2.6;
 

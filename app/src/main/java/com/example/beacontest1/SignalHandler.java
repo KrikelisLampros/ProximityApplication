@@ -212,7 +212,7 @@ public class SignalHandler extends AppCompatActivity implements BeaconConsumer {
 //      Icon/msg
         setImage();
     }
-// If we detect The signal
+// If the device detects a signal goes through that function
     private  void handleDetectedSignal(){
         if (uuid11.contains("1")) {
             Log.i("LogActivity", "we are in uuid11  before adding to the list ");

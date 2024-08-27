@@ -2,8 +2,12 @@ package com.example.beacontest1;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DbManager extends SQLiteOpenHelper {
 
@@ -45,7 +49,7 @@ public class DbManager extends SQLiteOpenHelper {
                 RSSI + " INTEGER,"+
                 Distance + " DOUBLE,"+
                 MEAN + " DOUBLE,"+
-                distanceFlag + " INTEGER)";
+                distanceFlag + " DOUBLE)";
 
         // Execute the SQL statement to create the table
         db.execSQL(sql);
@@ -58,7 +62,7 @@ public class DbManager extends SQLiteOpenHelper {
     }
 
     // Adds a record (MAC address and RSSI) to the database
-    public void addRecordToDb(String uuid, int rssi, double distance, double mean, int distance_flag) {
+    public void addRecordToDb(String uuid, int rssi, double distance, double mean, double distance_flag) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues contentValues = new ContentValues();
@@ -71,5 +75,46 @@ public class DbManager extends SQLiteOpenHelper {
 
         // Insert the data into the database table
         db.insert(db_Table, null, contentValues);
+    }
+
+    public List<DataPoint> getRecordsForKNN() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        List<DataPoint> dataPoints = new ArrayList<>();
+
+        String query = "SELECT " + Uuid + " , " + RSSI + ", " + distanceFlag + "  FROM " + db_Table + " ORDER BY counter DESC LIMIT 20 ";
+
+        try (Cursor result = db.rawQuery(query, null)) {
+
+            if (result.getCount()!=0 ) {
+                while (result.moveToNext()) {
+                    String uuid = result.getString(result.getColumnIndex(Uuid));
+                    int rssi = result.getInt(result.getColumnIndex(RSSI));
+                    double actualdistance = result.getDouble(result.getColumnIndex(distanceFlag));
+
+                    dataPoints.add(new DataPoint(rssi, actualdistance));
+
+                }
+            }
+        }
+        return dataPoints;
+    }
+
+    // Class to represent a data point (rssi, distance) for KNN
+    public class DataPoint {
+        int rssi;
+        double actualdistance;
+
+        public DataPoint(int rssi, double actualdistance) {
+            this.rssi = rssi;
+            this.actualdistance = actualdistance;
+        }
+
+        public int getRssi() {
+            return rssi;
+        }
+
+        public double actualdistance() {
+            return actualdistance;
+        }
     }
 }

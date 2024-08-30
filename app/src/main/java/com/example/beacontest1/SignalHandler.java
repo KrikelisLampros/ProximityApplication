@@ -256,13 +256,13 @@ public class SignalHandler extends AppCompatActivity implements BeaconConsumer {
 
     }
 
-
-//  Here we try to classify the  signals to our database  based on the message transmitted.
-
+/*
+  Here we try to classify the  signals to our database  based on the message transmitted.
+*/
     private void handleDb() {
+//      If we found 1 on the msg We create a new List that takes the calc distances of that beacon
         if (!distancesUuid1List.isEmpty() && uuid11.contains("1")) {
 
-//      If we found 1 on the msg We create a new List that takes the calc distances of that beacon
 //      So that we have our values to calculate the mean
 
             List<Double> last5Values1 = getLastValues(distancesUuid1List, 3);
@@ -272,6 +272,7 @@ public class SignalHandler extends AppCompatActivity implements BeaconConsumer {
 
 //          Here we store the nessery metrics into a db
 
+//          This variable is stored onto the db for the expirimental puproses as supervised learning.
             distanceFlag = 180.0 ;
             dbManager.addRecordToDb(uuid1, rssi, d_noiseless, meanUuid1, distanceFlag);
         }
@@ -300,7 +301,7 @@ public class SignalHandler extends AppCompatActivity implements BeaconConsumer {
 //        WithKnnSetImage();
     }
 
-// If the device detects a signal goes through that function
+// If the device detects a signal on onBeaconServiceConnect sends the traffic here to store properly the values into the db.
     private  void handleDetectedSignal(){
         if (uuid11.contains("1")) {
             Log.i("LogActivity", "we are in uuid11  before adding to the list ");
@@ -321,8 +322,9 @@ public class SignalHandler extends AppCompatActivity implements BeaconConsumer {
             handleDb();
         }
     }
-
-// Here if we detect a beacon this code starts running. Creats a list that reads all the incoming signals.
+/*
+    Here if we detect a beacon this code starts running. Creats a list that reads all the incoming signals.
+*/
     @Override
     public void onBeaconServiceConnect() {
         Region region = new Region("all-beacons-region", null, null, null);

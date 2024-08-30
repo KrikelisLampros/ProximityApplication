@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -37,10 +38,14 @@ public class SignalHandler extends AppCompatActivity implements BeaconConsumer {
     private static final int PERMISSION_REQUEST_FINE_LOCATION = 1;
 
     private Button btscan;
+    private TextView counterAcA;
+    private TextView counterAcB;
+    private TextView counterAcC;
     private ImageView beaconImage;
     private ListView devicesList;
     private ArrayAdapter<String> listAdapter;
     private DbManager dbManager;
+
     private List<Double> distancesUuid1List = new ArrayList<>();
     private List<Double> distancesUuid2List = new ArrayList<>();
     private List<Double> distancesUuid3List = new ArrayList<>();
@@ -54,12 +59,17 @@ public class SignalHandler extends AppCompatActivity implements BeaconConsumer {
     private double meanUuid2 ;
     private double meanUuid3;
 
-    //    String A_beacon= "0x11111111111111111111";
-//    String B_beacon= "0x22222222222222222222";
-//    String C_beacon= "0x33333333333333333333";
-    int distanceFlag = 100;
-    double A = -16.0 ;
-    double noise_value = 2.6;
+    double distanceFlag ;
+    double A = -55.4 ;
+    double noise_value = 2.3;
+
+
+    int k = 3 ;  // Define the number of neighbors
+
+    int AccuracyA = 0;
+    int AccuracyB = 0;
+    int AccuracyC = 0 ;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +77,11 @@ public class SignalHandler extends AppCompatActivity implements BeaconConsumer {
         setContentView(R.layout.log_view);
 
         dbManager = DbManager.instanceOfDataBase(this);
+
+        counterAcA = findViewById(R.id.CountA);
+        counterAcB = findViewById(R.id.CountB);
+        counterAcC = findViewById(R.id.CountC);
+
 //        devicesList = findViewById(R.id.listView);
         btscan = findViewById(R.id.scanButton);
         beaconImage = findViewById(R.id.beaconImage);
@@ -128,13 +143,16 @@ public class SignalHandler extends AppCompatActivity implements BeaconConsumer {
             }
         }
     }
+
 // Here we calculate the distance based on the preCalculated A and n
     public static double calculateNoiselessDistance(double A, double current_RSSI, double noise_value) {
-        double d0 = 1.0; // Reference distance in meters
-        return Math.pow(10, (A - current_RSSI) / (10 * noise_value));
+        double d0 = 1.0 ;
+        return d0 * Math.pow(10, (A - current_RSSI) / (10 * noise_value));
     }
+/*
+ Here we calculate the mean  of a list so we can handle the case of the device beeing equidistant from two beacons.
+*/
 
-// Here we calculate the mean  of a list so we can handle the case of the device beeing equidistant from two beacons.
     private double calculateMean(List<Double> values) {
 
         Log.i("Calc Mean", "Last 5 values for UUID1: " + values);
@@ -148,9 +166,12 @@ public class SignalHandler extends AppCompatActivity implements BeaconConsumer {
         return sum / values.size();
 
     }
+/*
+   We have this code to display a visualized message from the beacon we are currently listening in Higher.
+   With out the use of Knn filter but With a mean value. based on the last 5 values registered from the beacons on the device.
+*/
 
-
-    private void setImage() {
+    private void NoKnnsetImage() {
 
         Log.i("LogActivity!!! For mean Image Display ", "meanUuid1: " + meanUuid1 + ", meanUuid2: " + meanUuid2 + ", meanUuid3: " + meanUuid3);
         if(meanUuid1 == 0){
@@ -164,16 +185,30 @@ public class SignalHandler extends AppCompatActivity implements BeaconConsumer {
         }
         if (meanUuid1 < meanUuid2 && meanUuid1 < meanUuid3 )  {
             beaconImage.setImageResource(R.drawable.lettera);
+
+            AccuracyA++;
+            counterAcA.setText(String.valueOf(d_noiseless));
         }
         if (meanUuid2 < meanUuid1 && meanUuid2 < meanUuid3) {
             beaconImage.setImageResource(R.drawable.letterb);
+
+            AccuracyB++;
+            counterAcB.setText(String.valueOf(d_noiseless));
+
         }
         if (meanUuid3 < meanUuid1 && meanUuid3 < meanUuid2) {
             beaconImage.setImageResource(R.drawable.letterc);
+
+            AccuracyC++ ;
+            counterAcC.setText(String.valueOf(AccuracyC));
+
         }
    }
 
-//   This is a generic code that  allows me to use as much values to calculate the meanValue as I want
+/*
+   This is a generic code that  allows me to use as much values to calculate the meanValue as I want
+*/
+
     private List<Double> getLastValues(List<Double> list, int numberOfValues) {
         int size = list.size();
         if (size <= numberOfValues) {
@@ -182,16 +217,63 @@ public class SignalHandler extends AppCompatActivity implements BeaconConsumer {
             return new ArrayList<>(list.subList(size - numberOfValues, size));
         }
     }
-// Here we try to classify the  signals to our database  based on the message transmitted.
+
+
+/*
+        The below  lines of code are used to amplify the accuracy of the code utilizing the Knn Algorithm   .
+*/
+
+    private void WithKnnSetImage() {
+
+        KnnAlgoFilter knnClassifier = new KnnAlgoFilter(dbManager);
+        String result = knnClassifier.classify(rssi, k);
+
+
+
+        if (result.equals("A") )  {
+            Log.i("MeanActivity", "On Main Result A but "+ result);
+            beaconImage.setImageResource(R.drawable.lettera);
+
+                AccuracyA++;
+                counterAcA.setText(String.valueOf(AccuracyA));
+
+        }
+        if (result.equals("B")) {
+            Log.i("MeanActivity", "On Main Result B but "+ result);
+            beaconImage.setImageResource(R.drawable.letterb);
+
+                AccuracyB++;
+                counterAcB.setText(String.valueOf(AccuracyB));
+
+        }
+        if (result.equals("C")) {
+            Log.i("MeanActivity", "On Main Result C but "+ result);
+            beaconImage.setImageResource(R.drawable.letterc);
+            AccuracyC++ ;
+            counterAcC.setText(String.valueOf(AccuracyC));
+
+        }
+
+    }
+
+/*
+  Here we try to classify the  signals to our database  based on the message transmitted.
+*/
     private void handleDb() {
-        if (!distancesUuid1List.isEmpty() && uuid11.contains("1")) {
 //      If we found 1 on the msg We create a new List that takes the calc distances of that beacon
+        if (!distancesUuid1List.isEmpty() && uuid11.contains("1")) {
+
 //      So that we have our values to calculate the mean
+
             List<Double> last5Values1 = getLastValues(distancesUuid1List, 3);
             meanUuid1 = calculateMean(last5Values1);
             Log.i("MeanActivity", "Last 5 values for UUID1: " + last5Values1);
             Log.i("LogActivity", "we have calculated the mean 1 " + meanUuid1);
-//            Here we store the nessery metrics into a db
+
+//          Here we store the nessery metrics into a db
+
+//          This variable is stored onto the db for the expirimental puproses as supervised learning.
+            distanceFlag = 180.0 ;
             dbManager.addRecordToDb(uuid1, rssi, d_noiseless, meanUuid1, distanceFlag);
         }
         if (!distancesUuid2List.isEmpty()&&uuid11.contains("2")) {
@@ -199,6 +281,9 @@ public class SignalHandler extends AppCompatActivity implements BeaconConsumer {
             meanUuid2 = calculateMean(last5Values2);
             Log.i("LogActivity", "Last 5 values for UUID2: " + last5Values2);
             Log.i("LogActivity", "we have calculated the mean 2 " + meanUuid2);
+            distanceFlag = 100.0 ;
+            Log.i("LogActivity", "Last 5 values for UUID2: " + last5Values2);
+            Log.i("LogActivity", "we have calculated the mean 2 " + meanUuid2 + distanceFlag);
             dbManager.addRecordToDb(uuid1, rssi, d_noiseless, meanUuid2, distanceFlag);
         }
         if (!distancesUuid3List.isEmpty() && uuid11.contains("3")) {
@@ -206,13 +291,17 @@ public class SignalHandler extends AppCompatActivity implements BeaconConsumer {
             meanUuid3 = calculateMean(last5Values3);
             Log.i("LogActivity", "Last 5 values for UUID3: " + last5Values3);
             Log.i("LogActivity", "we have calculated the mean 3 " + meanUuid3);
+            distanceFlag = 100.12 ;
             dbManager.addRecordToDb(uuid1, rssi, d_noiseless, meanUuid3, distanceFlag);
         }
+
 //      Then We go to setImage and based on the mean calculations that have beed done We display an
 //      Icon/msg
-        setImage();
+      NoKnnsetImage();
+//        WithKnnSetImage();
     }
-// If the device detects that had already gone through our first (onBeaconServiceConnection) 
+
+// If the device detects a signal on onBeaconServiceConnect sends the traffic here to store properly the values into the db.
     private  void handleDetectedSignal(){
         if (uuid11.contains("1")) {
             Log.i("LogActivity", "we are in uuid11  before adding to the list ");
@@ -232,9 +321,10 @@ public class SignalHandler extends AppCompatActivity implements BeaconConsumer {
             Toast.makeText(SignalHandler.this, "Found BLE MATCH For beacon 3", Toast.LENGTH_SHORT).show();
             handleDb();
         }
-
     }
-// Here if we detect a beacon this code starts running. Creats a list that reads all the incoming signals.
+/*
+    Here if we detect a beacon this code starts running. Creats a list that reads all the incoming signals.
+*/
     @Override
     public void onBeaconServiceConnect() {
         Region region = new Region("all-beacons-region", null, null, null);
@@ -245,11 +335,14 @@ public class SignalHandler extends AppCompatActivity implements BeaconConsumer {
                 if(beacons != null) {
                     for (Beacon beacon : beacons) {
 //                  Now from every signal that we have collected We are taking the Uuid's
-                        // Retrieve the UUID from the Eddystone UID frame
-                         uuid1 = beacon.getId1().toString();
-                         uuid11 = beacon.getId2().toString();
+//                  Retrieve the UUID from the Eddystone UID frame
+
+                        uuid1 = beacon.getId1().toString();
+                        uuid11 = beacon.getId2().toString();
+
 //                  Below we are retrieving the Rssi from the Library Alt.Beacon we are using.
                          rssi = beacon.getRssi();
+
 //                  Below we are calculating  the distance based on the noiseless formula
                         d_noiseless = calculateNoiselessDistance(A,rssi,noise_value);
 
@@ -259,9 +352,10 @@ public class SignalHandler extends AppCompatActivity implements BeaconConsumer {
 
 //                  After the reading signals of the beacons and necessary calculations. We procced
 //                  with the HandleDetecctedSignals function.
-
                         handleDetectedSignal();
+
 //                        handleDb();
+
                         listAdapter.add(displayInfo1);
                         listAdapter.notifyDataSetChanged();
 

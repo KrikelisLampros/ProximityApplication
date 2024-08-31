@@ -187,13 +187,13 @@ public class SignalHandler extends AppCompatActivity implements BeaconConsumer {
             beaconImage.setImageResource(R.drawable.lettera);
 
             AccuracyA++;
-            counterAcA.setText(String.valueOf(d_noiseless));
+            counterAcA.setText(String.valueOf(AccuracyA));
         }
         if (meanUuid2 < meanUuid1 && meanUuid2 < meanUuid3) {
             beaconImage.setImageResource(R.drawable.letterb);
 
             AccuracyB++;
-            counterAcB.setText(String.valueOf(d_noiseless));
+            counterAcB.setText(String.valueOf(AccuracyB));
 
         }
         if (meanUuid3 < meanUuid1 && meanUuid3 < meanUuid2) {
@@ -279,8 +279,7 @@ public class SignalHandler extends AppCompatActivity implements BeaconConsumer {
         if (!distancesUuid2List.isEmpty()&&uuid11.contains("2")) {
             List<Double> last5Values2 = getLastValues(distancesUuid2List, 3);
             meanUuid2 = calculateMean(last5Values2);
-            Log.i("LogActivity", "Last 5 values for UUID2: " + last5Values2);
-            Log.i("LogActivity", "we have calculated the mean 2 " + meanUuid2);
+
             distanceFlag = 100.0 ;
             Log.i("LogActivity", "Last 5 values for UUID2: " + last5Values2);
             Log.i("LogActivity", "we have calculated the mean 2 " + meanUuid2 + distanceFlag);

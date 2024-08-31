@@ -187,13 +187,13 @@ public class SignalHandler extends AppCompatActivity implements BeaconConsumer {
             beaconImage.setImageResource(R.drawable.lettera);
 
             AccuracyA++;
-            counterAcA.setText(String.valueOf(d_noiseless));
+            counterAcA.setText(String.valueOf(AccuracyA));
         }
         if (meanUuid2 < meanUuid1 && meanUuid2 < meanUuid3) {
             beaconImage.setImageResource(R.drawable.letterb);
 
             AccuracyB++;
-            counterAcB.setText(String.valueOf(d_noiseless));
+            counterAcB.setText(String.valueOf(AccuracyB));
 
         }
         if (meanUuid3 < meanUuid1 && meanUuid3 < meanUuid2) {

@@ -279,8 +279,7 @@ public class SignalHandler extends AppCompatActivity implements BeaconConsumer {
         if (!distancesUuid2List.isEmpty()&&uuid11.contains("2")) {
             List<Double> last5Values2 = getLastValues(distancesUuid2List, 3);
             meanUuid2 = calculateMean(last5Values2);
-            Log.i("LogActivity", "Last 5 values for UUID2: " + last5Values2);
-            Log.i("LogActivity", "we have calculated the mean 2 " + meanUuid2);
+
             distanceFlag = 100.0 ;
             Log.i("LogActivity", "Last 5 values for UUID2: " + last5Values2);
             Log.i("LogActivity", "we have calculated the mean 2 " + meanUuid2 + distanceFlag);

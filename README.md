@@ -5,3 +5,6 @@ This proximity-based functionality enhances user experiences in various settings
 For instance, in a museum, visitors can effortlessly access detailed information about an artifact simply by approaching it, eliminating the need for physical signage or guided tours.
 Similarly, in hospitals, healthcare professionals can seamlessly view personalized data relevant to their current location, such as patient information within a specific room or on a particular floor.
 
+##How it works
+### How do we handle the signals. 
+    We are getting 

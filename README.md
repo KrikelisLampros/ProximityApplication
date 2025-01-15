@@ -1,4 +1,4 @@
-The purpuse of this project. 
+# The purpuse of this project. 
 This Android application leverages Bluetooth Low Energy (BLE) technology to accurately determine the distance between a transmitter and the mobile device. 
 This proximity-based functionality enhances user experiences in various settings
 
